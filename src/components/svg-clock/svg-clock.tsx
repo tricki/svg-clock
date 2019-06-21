@@ -1,5 +1,6 @@
 import { h, Component, Element, Method, Prop, State, Watch } from '@stencil/core';
 import { getHoursAngle, getMinutesAngle, getSecondsAngle } from '../../utils/calculateAngle';
+import { supportsCSSTransformsOnSVG } from '../../utils/supportsCSSTransformsOnSVG';
 
 @Component({
   tag: 'svg-clock',
@@ -9,6 +10,7 @@ export class SvgClock {
 
   intervalId: number;
   visibilityListener: () => void;
+  supportsCSSTransformsOnSVG: boolean = supportsCSSTransformsOnSVG();
 
   elHands: { [key: string]: SVGElement };
 
@@ -29,6 +31,15 @@ export class SvgClock {
    * @memberof SvgClock
    */
   @Prop() interval: number = 1000;
+
+  /**
+   * The center of the hands used in the SVG `transform` attribute.
+   * Required for supporting IE11 and Edge <17.
+   *
+   * @type {string}
+   * @memberof SvgClock
+   */
+  @Prop() svgRotationOrigin: string = '132.278 164.621';
 
   @State() currentDate: Date;
 
@@ -55,7 +66,7 @@ export class SvgClock {
 
   @Method()
   async stop() {
-    if(!this._isRunning()) {
+    if (!this._isRunning()) {
       return;
     }
 
@@ -96,7 +107,7 @@ export class SvgClock {
   }
 
   visibilityChanged() {
-    if(document.hidden && !this._isRunning()) {
+    if (document.hidden && !this._isRunning()) {
       // not running => do nothing
       return;
     }
@@ -107,9 +118,15 @@ export class SvgClock {
   tick() {
     this.currentDate = new Date();
 
-    this.elHands.hours.style.transform = `rotateZ(${getHoursAngle(this.currentDate)}deg)`;
-    this.elHands.minutes.style.transform = `rotateZ(${getMinutesAngle(this.currentDate)}deg)`;
-    this.elHands.seconds.style.transform = `rotateZ(${getSecondsAngle(this.currentDate, this.interval < 1000)}deg)`;
+    if (this.supportsCSSTransformsOnSVG) {
+      this.elHands.hours.style.transform = `rotateZ(${getHoursAngle(this.currentDate)}deg)`;
+      this.elHands.minutes.style.transform = `rotateZ(${getMinutesAngle(this.currentDate)}deg)`;
+      this.elHands.seconds.style.transform = `rotateZ(${getSecondsAngle(this.currentDate, this.interval < 1000)}deg)`;
+    } else {
+      this.elHands.hours.setAttribute('transform', `rotate(${getHoursAngle(this.currentDate)} ${this.svgRotationOrigin})`);
+      this.elHands.minutes.setAttribute('transform', `rotate(${getMinutesAngle(this.currentDate)} ${this.svgRotationOrigin})`);
+      this.elHands.seconds.setAttribute('transform', `rotate(${getSecondsAngle(this.currentDate, this.interval < 1000)} ${this.svgRotationOrigin})`);
+    }
   }
 
   render() {

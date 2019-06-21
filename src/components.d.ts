@@ -21,6 +21,10 @@ export namespace Components {
     'isRunning': () => Promise<boolean>;
     'start': () => Promise<void>;
     'stop': () => Promise<void>;
+    /**
+    * The center of the hands used in the SVG `transform` attribute. Required for supporting IE11 and Edge <17.
+    */
+    'svgRotationOrigin': string;
   }
 }
 
@@ -47,6 +51,10 @@ declare namespace LocalJSX {
     * The interval to check the time. Decrease for smoother animation and increased performance cost.
     */
     'interval'?: number;
+    /**
+    * The center of the hands used in the SVG `transform` attribute. Required for supporting IE11 and Edge <17.
+    */
+    'svgRotationOrigin'?: string;
   }
 
   interface IntrinsicElements {
