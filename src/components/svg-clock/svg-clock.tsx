@@ -1,6 +1,7 @@
 import { h, Component, Element, Method, Prop, State, Watch } from '@stencil/core';
 import { getHoursAngle, getMinutesAngle, getSecondsAngle } from '../../utils/calculateAngle';
 import { supportsCSSTransformsOnSVG } from '../../utils/supportsCSSTransformsOnSVG';
+import { getMillisecondsToNextSecond } from '../../utils/getMillisecondsToNextSecond';
 
 @Component({
   tag: 'svg-clock',
@@ -61,7 +62,22 @@ export class SvgClock {
     }
 
     this.tick();
-    this.intervalId = window.setInterval(() => this.tick(), this.interval);
+    this.startInterval();
+  }
+
+  /**
+   * Start an interval at the start of the next second or minute.
+   *
+   * @memberof SvgClock
+   */
+  startInterval() {
+    const timeout = getMillisecondsToNextSecond(this.interval >= 60000);
+
+    setTimeout(() => {
+      this.tick();
+
+      this.intervalId = window.setInterval(() => this.tick(), this.interval);
+    }, timeout);
   }
 
   @Method()
