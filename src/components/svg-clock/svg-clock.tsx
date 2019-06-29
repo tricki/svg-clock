@@ -50,6 +50,14 @@ export class SvgClock {
    */
   @Prop() svgRotationOrigin: string = '132.278 164.621';
 
+  /**
+   * Disable precision. Precision adjusts the rotation of a value (e.g. hours) depending on a lower level value (e.g. minutes).
+   *
+   * @type {boolean}
+   * @memberof SvgClock
+   */
+  @Prop() disablePrecision: boolean = false;
+
   @State() currentDate: Date;
 
   @State() paused: boolean = false;
@@ -176,13 +184,20 @@ export class SvgClock {
   tick() {
     this.currentDate = new Date();
 
+    let hoursPrecision = true;
+    let minutesPrecision = false;
+
+    if (this.disablePrecision) {
+      hoursPrecision = false;
+    }
+
     if (this.supportsCSSTransformsOnSVG) {
-      this.elHands.hours.style.transform = `rotateZ(${getHoursAngle(this.currentDate)}deg)`;
-      this.elHands.minutes.style.transform = `rotateZ(${getMinutesAngle(this.currentDate)}deg)`;
+      this.elHands.hours.style.transform = `rotateZ(${getHoursAngle(this.currentDate, hoursPrecision)}deg)`;
+      this.elHands.minutes.style.transform = `rotateZ(${getMinutesAngle(this.currentDate, minutesPrecision)}deg)`;
       this.elHands.seconds.style.transform = `rotateZ(${getSecondsAngle(this.currentDate, this.interval < 1000)}deg)`;
     } else {
-      this.elHands.hours.setAttribute('transform', `rotate(${getHoursAngle(this.currentDate)} ${this.svgRotationOrigin})`);
-      this.elHands.minutes.setAttribute('transform', `rotate(${getMinutesAngle(this.currentDate)} ${this.svgRotationOrigin})`);
+      this.elHands.hours.setAttribute('transform', `rotate(${getHoursAngle(this.currentDate, hoursPrecision)} ${this.svgRotationOrigin})`);
+      this.elHands.minutes.setAttribute('transform', `rotate(${getMinutesAngle(this.currentDate, minutesPrecision)} ${this.svgRotationOrigin})`);
       this.elHands.seconds.setAttribute('transform', `rotate(${getSecondsAngle(this.currentDate, this.interval < 1000)} ${this.svgRotationOrigin})`);
     }
   }

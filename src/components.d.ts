@@ -15,6 +15,10 @@ export namespace Components {
     */
     'autoplay': boolean;
     /**
+    * Disable precision. Precision adjusts the rotation of a value (e.g. hours) depending on a lower level value (e.g. minutes).
+    */
+    'disablePrecision': boolean;
+    /**
     * The interval to check the time. Decrease for smoother animation and increased performance cost.
     */
     'interval': number;
@@ -51,6 +55,10 @@ declare namespace LocalJSX {
     * Automatically start the clock.
     */
     'autoplay'?: boolean;
+    /**
+    * Disable precision. Precision adjusts the rotation of a value (e.g. hours) depending on a lower level value (e.g. minutes).
+    */
+    'disablePrecision'?: boolean;
     /**
     * The interval to check the time. Decrease for smoother animation and increased performance cost.
     */
