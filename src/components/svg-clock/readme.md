@@ -11,6 +11,7 @@
 | ------------------- | --------------------- | --------------------------------------------------------------------------------------------------------- | --------- | ------------------- |
 | `autoplay`          | `autoplay`            | Automatically start the clock.                                                                            | `boolean` | `false`             |
 | `interval`          | `interval`            | The interval to check the time. Decrease for smoother animation and increased performance cost.           | `number`  | `1000`              |
+| `src`               | `src`                 | Define a URL to load the SVG from. Combining this with inline SVG will result in untested behavior.       | `string`  | `undefined`         |
 | `svgRotationOrigin` | `svg-rotation-origin` | The center of the hands used in the SVG `transform` attribute. Required for supporting IE11 and Edge <17. | `string`  | `'132.278 164.621'` |
 
 

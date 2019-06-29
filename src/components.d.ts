@@ -19,6 +19,10 @@ export namespace Components {
     */
     'interval': number;
     'isRunning': () => Promise<boolean>;
+    /**
+    * Define a URL to load the SVG from. Combining this with inline SVG will result in untested behavior.
+    */
+    'src': string;
     'start': () => Promise<void>;
     'stop': () => Promise<void>;
     /**
@@ -51,6 +55,10 @@ declare namespace LocalJSX {
     * The interval to check the time. Decrease for smoother animation and increased performance cost.
     */
     'interval'?: number;
+    /**
+    * Define a URL to load the SVG from. Combining this with inline SVG will result in untested behavior.
+    */
+    'src'?: string;
     /**
     * The center of the hands used in the SVG `transform` attribute. Required for supporting IE11 and Edge <17.
     */

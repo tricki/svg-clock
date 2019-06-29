@@ -18,6 +18,14 @@ export class SvgClock {
   @Element() el: HTMLSvgClockElement;
 
   /**
+   * Define a URL to load the SVG from. Combining this with inline SVG will result in untested behavior.
+   *
+   * @type {string}
+   * @memberof SvgClock
+   */
+  @Prop() src: string;
+
+  /**
    * Automatically start the clock.
    *
    * @type {boolean}
@@ -45,6 +53,8 @@ export class SvgClock {
   @State() currentDate: Date;
 
   @State() paused: boolean = false;
+
+  @State() svg;
 
   @Watch('paused')
   pausedChanged() {
@@ -95,15 +105,40 @@ export class SvgClock {
     return this._isRunning();
   }
 
-  componentWillLoad() {
+  async componentWillLoad() {
     this.visibilityListener = this.visibilityChanged.bind(this);
     document.addEventListener('visibilitychange', this.visibilityListener);
 
-    this.elHands = {
-      hours: this.el.querySelector('svg #hours'),
-      minutes: this.el.querySelector('svg #minutes'),
-      seconds: this.el.querySelector('svg #seconds'),
-    };
+    let loadingPromise = Promise.resolve();
+
+    if (this.src) {
+      loadingPromise = this.loadExternalSvg();
+    } else {
+      this.loadSvg();
+    }
+
+    await loadingPromise;
+
+    if (!this.src) {
+      // only initialize if no external SVG has to be loaded first
+      this.init();
+    }
+  }
+
+  componentDidLoad() {
+    if (this.src) {
+      // initialize after external SVG was rendered
+      this.init();
+    }
+  }
+
+  componentDidUnload() {
+    this.stop();
+    document.removeEventListener('visibilitychange', this.visibilityListener);
+  }
+
+  async init() {
+    this.loadSvg();
 
     if (this.autoplay) {
       this.start();
@@ -113,9 +148,16 @@ export class SvgClock {
     }
   }
 
-  componentDidUnload() {
-    this.stop();
-    document.removeEventListener('visibilitychange', this.visibilityListener);
+  async loadExternalSvg() {
+    this.svg = await (await fetch(this.src)).text();
+  }
+
+  loadSvg() {
+    this.elHands = {
+      hours: this.el.querySelector('svg #hours'),
+      minutes: this.el.querySelector('svg #minutes'),
+      seconds: this.el.querySelector('svg #seconds'),
+    };
   }
 
   _isRunning() {
@@ -147,7 +189,8 @@ export class SvgClock {
 
   render() {
     return [
-        <slot />,
+      this.svg && <span innerHTML={this.svg}></span>,
+      <slot />,
     ];
   }
 }
