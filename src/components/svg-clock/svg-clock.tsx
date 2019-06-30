@@ -11,6 +11,7 @@ export class SvgClock {
 
   intervalId: number;
   visibilityListener: () => void;
+  io: IntersectionObserver;
   supportsCSSTransformsOnSVG: boolean = supportsCSSTransformsOnSVG();
 
   elHands: { [key: string]: SVGElement };
@@ -148,6 +149,7 @@ export class SvgClock {
   async componentWillLoad() {
     this.visibilityListener = this.visibilityChanged.bind(this);
     document.addEventListener('visibilitychange', this.visibilityListener);
+
     this.timeChanged();
 
     let loadingPromise = Promise.resolve();
@@ -171,11 +173,19 @@ export class SvgClock {
       // initialize after external SVG was rendered
       this.init();
     }
+
+    if ('IntersectionObserver' in window) {
+      this.io = new IntersectionObserver(this.intersectionChanged.bind(this), {
+        threshold: [0, 1]
+      });
+      this.io.observe(this.el);
+    }
   }
 
   componentDidUnload() {
     this.stop();
     document.removeEventListener('visibilitychange', this.visibilityListener);
+    this.io.disconnect();
   }
 
   async init() {
@@ -226,6 +236,14 @@ export class SvgClock {
     }
 
     this.paused = document.hidden;
+  }
+
+  intersectionChanged(entries?: IntersectionObserverEntry[]) {
+    if (!entries || !entries[0]) {
+      return;
+    }
+
+    this.paused = entries[0].intersectionRatio === 0;
   }
 
   tick() {
