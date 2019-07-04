@@ -64,6 +64,8 @@ export class SvgClock {
 
   @State() svg;
 
+  @State() hours24: boolean = false;
+
   @Watch('paused')
   pausedChanged() {
     if (!this.paused) {
@@ -161,8 +163,16 @@ export class SvgClock {
   }
 
   loadSvg() {
+    let elHours: SVGElement = this.el.querySelector('svg #hours-24');
+
+    this.hours24 = !!elHours;
+
+    if (!this.hours24) {
+      elHours = this.el.querySelector('svg #hours');
+    }
+
     this.elHands = {
-      hours: this.el.querySelector('svg #hours'),
+      hours: elHours,
       minutes: this.el.querySelector('svg #minutes'),
       seconds: this.el.querySelector('svg #seconds'),
     };
@@ -192,14 +202,14 @@ export class SvgClock {
     }
 
     if (this.supportsCSSTransformsOnSVG) {
-      this.elHands.hours.style.transform = `rotateZ(${getHoursAngle(this.currentDate, hoursPrecision)}deg)`;
+      this.elHands.hours.style.transform = `rotateZ(${getHoursAngle(this.currentDate, hoursPrecision, this.hours24)}deg)`;
       this.elHands.minutes.style.transform = `rotateZ(${getMinutesAngle(this.currentDate, minutesPrecision)}deg)`;
 
       if (this.elHands.seconds) {
         this.elHands.seconds.style.transform = `rotateZ(${getSecondsAngle(this.currentDate, this.interval < 1000)}deg)`;
       }
     } else {
-      this.elHands.hours.setAttribute('transform', `rotate(${getHoursAngle(this.currentDate, hoursPrecision)} ${this.svgRotationOrigin})`);
+      this.elHands.hours.setAttribute('transform', `rotate(${getHoursAngle(this.currentDate, hoursPrecision, this.hours24)} ${this.svgRotationOrigin})`);
       this.elHands.minutes.setAttribute('transform', `rotate(${getMinutesAngle(this.currentDate, minutesPrecision)} ${this.svgRotationOrigin})`);
 
       if (this.elHands.seconds) {

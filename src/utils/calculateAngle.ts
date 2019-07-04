@@ -1,8 +1,12 @@
-export function getHoursAngle(date: Date, highPrecision: boolean = true) {
-  let angle = date.getHours() * 30;
+export function getHoursAngle(date: Date, highPrecision: boolean = true, hours24Mode: boolean = false) {
+  let angle = 30 * (hours24Mode ? date.getHours() : (date.getHours() % 12));
 
   if (highPrecision) {
     angle += date.getMinutes() / 2;
+  }
+
+  if (hours24Mode) {
+    angle = angle / 2;
   }
 
   return angle;
