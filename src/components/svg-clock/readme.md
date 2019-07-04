@@ -20,7 +20,7 @@
 
 ### `isRunning() => Promise<boolean>`
 
-
+Determine whether the clock is running.
 
 #### Returns
 
@@ -30,7 +30,7 @@ Type: `Promise<boolean>`
 
 ### `start() => Promise<void>`
 
-
+Start the animation.
 
 #### Returns
 
@@ -40,7 +40,7 @@ Type: `Promise<void>`
 
 ### `stop() => Promise<void>`
 
-
+Stop the animation.
 
 #### Returns
 

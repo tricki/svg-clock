@@ -106,6 +106,12 @@ export class SvgClock {
 
   @State() svg;
 
+  /**
+   * Start the animation.
+   *
+   * @returns
+   * @memberof SvgClock
+   */
   @Method()
   async start() {
     if (this._isRunning() || this.paused || !!this.time) {
@@ -131,6 +137,12 @@ export class SvgClock {
     }, timeout);
   }
 
+  /**
+   * Stop the animation.
+   *
+   * @returns
+   * @memberof SvgClock
+   */
   @Method()
   async stop() {
     if (!this._isRunning()) {
@@ -141,6 +153,12 @@ export class SvgClock {
     this.intervalId = null;
   }
 
+  /**
+   * Determine whether the clock is running.
+   *
+   * @returns
+   * @memberof SvgClock
+   */
   @Method()
   async isRunning() {
     return this._isRunning();
