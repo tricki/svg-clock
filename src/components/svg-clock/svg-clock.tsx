@@ -42,15 +42,6 @@ export class SvgClock {
   @Prop() interval: number = 1000;
 
   /**
-   * The center of the hands used in the SVG `transform` attribute.
-   * Required for supporting IE11 and Edge <17.
-   *
-   * @type {string}
-   * @memberof SvgClock
-   */
-  @Prop() svgRotationOrigin: string = '132.278 164.621';
-
-  /**
    * Disable precision. Precision adjusts the rotation of a value (e.g. hours) depending on a lower level value (e.g. minutes).
    *
    * @type {boolean}
@@ -75,6 +66,14 @@ export class SvgClock {
     }
   }
 
+  /**
+   * The center of the hands used in the SVG `transform` attribute.
+   * Required for supporting IE11 and Edge <17.
+   *
+   * @type {string}
+   * @memberof SvgClock
+   */
+  @State() svgRotationOrigins: { [key: string]: string };
   @Method()
   async start() {
     if (this._isRunning() || this.paused) {
@@ -176,6 +175,12 @@ export class SvgClock {
       minutes: this.el.querySelector('svg #minutes'),
       seconds: this.el.querySelector('svg #seconds'),
     };
+
+    this.svgRotationOrigins = {
+      hours: this.elHands.hours.getAttribute('data-transform-origin'),
+      minutes: this.elHands.minutes.getAttribute('data-transform-origin'),
+      seconds: this.elHands.seconds && this.elHands.seconds.getAttribute('data-transform-origin'),
+    };
   }
 
   _isRunning() {
@@ -209,11 +214,11 @@ export class SvgClock {
         this.elHands.seconds.style.transform = `rotateZ(${getSecondsAngle(this.currentDate, this.interval < 1000)}deg)`;
       }
     } else {
-      this.elHands.hours.setAttribute('transform', `rotate(${getHoursAngle(this.currentDate, hoursPrecision, this.hours24)} ${this.svgRotationOrigin})`);
-      this.elHands.minutes.setAttribute('transform', `rotate(${getMinutesAngle(this.currentDate, minutesPrecision)} ${this.svgRotationOrigin})`);
+      this.elHands.hours.setAttribute('transform', `rotate(${getHoursAngle(this.currentDate, hoursPrecision, this.hours24)} ${this.svgRotationOrigins.hours})`);
+      this.elHands.minutes.setAttribute('transform', `rotate(${getMinutesAngle(this.currentDate, minutesPrecision)} ${this.svgRotationOrigins.minutes})`);
 
       if (this.elHands.seconds) {
-        this.elHands.seconds.setAttribute('transform', `rotate(${getSecondsAngle(this.currentDate, this.interval < 1000)} ${this.svgRotationOrigin})`);
+        this.elHands.seconds.setAttribute('transform', `rotate(${getSecondsAngle(this.currentDate, this.interval < 1000)} ${this.svgRotationOrigins.seconds})`);
       }
     }
   }

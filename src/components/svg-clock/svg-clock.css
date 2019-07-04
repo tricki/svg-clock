@@ -7,16 +7,3 @@ svg-clock svg {
   max-width: 100%;
   max-height: 100%;
 }
-
-svg-clock #hours {
-  transform: rotateZ(90deg);
-  transform-origin: 50% 62.2%;
-}
-
-svg-clock #minutes {
-  transform-origin: 50% 62%;
-}
-
-svg-clock #seconds {
-  transform-origin: 50% 62.3%;
-}
