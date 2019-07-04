@@ -19,7 +19,7 @@ export namespace Components {
     */
     'disablePrecision': boolean;
     /**
-    * The interval to check the time. Decrease for smoother animation and increased performance cost.
+    * The interval to check the time. Decrease for smoother animation and increased performance cost. Will be ignored if `time` is set.
     */
     'interval': number;
     'isRunning': () => Promise<boolean>;
@@ -29,6 +29,10 @@ export namespace Components {
     'src': string;
     'start': () => Promise<void>;
     'stop': () => Promise<void>;
+    /**
+    * Set a specific time to display. This will disable the automatic ticking. You can pass either a `Date` object or a string in format `hh:mm:ss`.
+    */
+    'time': string | Date;
   }
 }
 
@@ -56,13 +60,17 @@ declare namespace LocalJSX {
     */
     'disablePrecision'?: boolean;
     /**
-    * The interval to check the time. Decrease for smoother animation and increased performance cost.
+    * The interval to check the time. Decrease for smoother animation and increased performance cost. Will be ignored if `time` is set.
     */
     'interval'?: number;
     /**
     * Define a URL to load the SVG from. Combining this with inline SVG will result in untested behavior.
     */
     'src'?: string;
+    /**
+    * Set a specific time to display. This will disable the automatic ticking. You can pass either a `Date` object or a string in format `hh:mm:ss`.
+    */
+    'time'?: string | Date;
   }
 
   interface IntrinsicElements {

@@ -34,12 +34,42 @@ export class SvgClock {
 
   /**
    * The interval to check the time. Decrease for smoother animation and
-   * increased performance cost.
+   * increased performance cost. Will be ignored if `time` is set.
    *
    * @type {number}
    * @memberof SvgClock
    */
   @Prop() interval: number = 1000;
+
+  /**
+   * Set a specific time to display. This will disable the automatic ticking.
+   * You can pass either a `Date` object or a string in format `hh:mm:ss`.
+   *
+   * @type {(string | Date)}
+   * @memberof SvgClock
+   */
+  @Prop() time: string | Date;
+
+  @Watch('time')
+  timeChanged() {
+    if (!this.time) {
+      return;
+    }
+
+    this.stop();
+
+    if (this.time instanceof Date) {
+      this.currentDate = this.time;
+      return;
+    }
+
+    if (typeof this.time === 'string') {
+      const [hours, minutes, seconds, milliseconds] = this.time.split(':').map(v => +v);
+
+      this.currentDate = new Date(null, null, null, hours, minutes || 0, seconds || 0, milliseconds || 0)
+      this.tick();
+    }
+  }
 
   /**
    * Disable precision. Precision adjusts the rotation of a value (e.g. hours) depending on a lower level value (e.g. minutes).
@@ -51,11 +81,9 @@ export class SvgClock {
 
   @State() currentDate: Date;
 
-  @State() paused: boolean = false;
-
-  @State() svg;
-
   @State() hours24: boolean = false;
+
+  @State() paused: boolean = false;
 
   @Watch('paused')
   pausedChanged() {
@@ -74,9 +102,12 @@ export class SvgClock {
    * @memberof SvgClock
    */
   @State() svgRotationOrigins: { [key: string]: string };
+
+  @State() svg;
+
   @Method()
   async start() {
-    if (this._isRunning() || this.paused) {
+    if (this._isRunning() || this.paused || !!this.time) {
       return;
     }
 
@@ -117,6 +148,7 @@ export class SvgClock {
   async componentWillLoad() {
     this.visibilityListener = this.visibilityChanged.bind(this);
     document.addEventListener('visibilitychange', this.visibilityListener);
+    this.timeChanged();
 
     let loadingPromise = Promise.resolve();
 
@@ -197,7 +229,13 @@ export class SvgClock {
   }
 
   tick() {
-    this.currentDate = new Date();
+    if (!this.elHands || !this.elHands.hours) {
+      return;
+    }
+
+    if (!this.time) {
+      this.currentDate = new Date();
+    }
 
     let hoursPrecision = true;
     let minutesPrecision = false;
