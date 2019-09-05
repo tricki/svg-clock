@@ -9,6 +9,10 @@ import { getMillisecondsToNextSecond } from '../../utils/getMillisecondsToNextSe
 })
 export class SvgClock {
 
+  /**
+   * The timeout used to start the interval at the correct moment.
+   */
+  timeoutId: number;
   intervalId: number;
   visibilityListener: () => void;
   io: IntersectionObserver;
@@ -130,7 +134,7 @@ export class SvgClock {
   startInterval() {
     const timeout = getMillisecondsToNextSecond(this.interval >= 60000);
 
-    setTimeout(() => {
+    this.timeoutId = window.setTimeout(() => {
       this.tick();
 
       this.intervalId = window.setInterval(() => this.tick(), this.interval);
@@ -149,7 +153,9 @@ export class SvgClock {
       return;
     }
 
+    window.clearTimeout(this.timeoutId);
     window.clearInterval(this.intervalId);
+    this.timeoutId = null;
     this.intervalId = null;
   }
 
