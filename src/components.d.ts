@@ -39,7 +39,7 @@ export namespace Components {
     */
     'stop': () => Promise<void>;
     /**
-    * Set a specific time to display. This will disable the automatic ticking. You can pass either a `Date` object or a string in format `hh:mm:ss`.
+    * Set a specific time to display. This will disable the automatic ticking. You can pass either a `Date` object or a string in format `hh[:mm[:ss]]`.
     */
     'time': string | Date;
   }
@@ -77,7 +77,7 @@ declare namespace LocalJSX {
     */
     'src'?: string;
     /**
-    * Set a specific time to display. This will disable the automatic ticking. You can pass either a `Date` object or a string in format `hh:mm:ss`.
+    * Set a specific time to display. This will disable the automatic ticking. You can pass either a `Date` object or a string in format `hh[:mm[:ss]]`.
     */
     'time'?: string | Date;
   }

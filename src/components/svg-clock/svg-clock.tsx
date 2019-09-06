@@ -2,6 +2,7 @@ import { h, Component, Element, Method, Prop, State, Watch } from '@stencil/core
 import { getHoursAngle, getMinutesAngle, getSecondsAngle } from '../../utils/calculateAngle';
 import { supportsCSSTransformsOnSVG } from '../../utils/supportsCSSTransformsOnSVG';
 import { getMillisecondsToNextSecond } from '../../utils/getMillisecondsToNextSecond';
+import { parseTimeString } from '../../utils/parseTimeString';
 
 @Component({
   tag: 'svg-clock',
@@ -13,8 +14,11 @@ export class SvgClock {
    * The timeout used to start the interval at the correct moment.
    */
   timeoutId: number;
+
+  /**
+   * The interval responsible for the "ticking" of the clock.
+   */
   intervalId: number;
-  visibilityListener: () => void;
   io: IntersectionObserver;
   supportsCSSTransformsOnSVG: boolean = supportsCSSTransformsOnSVG();
 
@@ -24,34 +28,23 @@ export class SvgClock {
 
   /**
    * Define a URL to load the SVG from. Combining this with inline SVG will result in untested behavior.
-   *
-   * @type {string}
-   * @memberof SvgClock
    */
   @Prop() src: string;
 
   /**
    * Automatically start the clock.
-   *
-   * @type {boolean}
    */
   @Prop() autoplay: boolean = false;
 
   /**
    * The interval to check the time. Decrease for smoother animation and
    * increased performance cost. Will be ignored if `time` is set.
-   *
-   * @type {number}
-   * @memberof SvgClock
    */
   @Prop() interval: number = 1000;
 
   /**
    * Set a specific time to display. This will disable the automatic ticking.
-   * You can pass either a `Date` object or a string in format `hh:mm:ss`.
-   *
-   * @type {(string | Date)}
-   * @memberof SvgClock
+   * You can pass either a `Date` object or a string in format `hh[:mm[:ss]]`.
    */
   @Prop() time: string | Date;
 
@@ -69,25 +62,29 @@ export class SvgClock {
     }
 
     if (typeof this.time === 'string') {
-      const [hours, minutes, seconds, milliseconds] = this.time.split(':').map(v => +v);
-
-      this.currentDate = new Date(null, null, null, hours, minutes || 0, seconds || 0, milliseconds || 0)
+      this.currentDate = parseTimeString(this.time);
       this.tick();
     }
   }
 
   /**
    * Disable precision. Precision adjusts the rotation of a value (e.g. hours) depending on a lower level value (e.g. minutes).
-   *
-   * @type {boolean}
-   * @memberof SvgClock
    */
   @Prop() disablePrecision: boolean = false;
 
+  /**
+   * The time that the clock is currently set to.
+   */
   @State() currentDate: Date;
 
+  /**
+   * Whether the hour hand should rotate once in 24 hours instead of 12.
+   */
   @State() hours24: boolean = false;
 
+  /**
+   * Whether the clock is paused, for example because the clock is not visible.
+   */
   @State() paused: boolean = false;
 
   @Watch('paused')
@@ -102,19 +99,18 @@ export class SvgClock {
   /**
    * The center of the hands used in the SVG `transform` attribute.
    * Required for supporting IE11 and Edge <17.
-   *
-   * @type {string}
-   * @memberof SvgClock
    */
   @State() svgRotationOrigins: { [key: string]: string };
 
-  @State() svg;
+  /**
+   * The SVG of the clock to show. Will be populated based on the `src` property.
+   */
+  @State() svg: string;
+
+  @State() isCurrentlyRunning: boolean = false;
 
   /**
    * Start the animation.
-   *
-   * @returns
-   * @memberof SvgClock
    */
   @Method()
   async start() {
@@ -122,36 +118,21 @@ export class SvgClock {
       return;
     }
 
+    this.isCurrentlyRunning = true;
     this.tick();
     this.startInterval();
   }
 
   /**
-   * Start an interval at the start of the next second or minute.
-   *
-   * @memberof SvgClock
-   */
-  startInterval() {
-    const timeout = getMillisecondsToNextSecond(this.interval >= 60000);
-
-    this.timeoutId = window.setTimeout(() => {
-      this.tick();
-
-      this.intervalId = window.setInterval(() => this.tick(), this.interval);
-    }, timeout);
-  }
-
-  /**
    * Stop the animation.
-   *
-   * @returns
-   * @memberof SvgClock
    */
   @Method()
   async stop() {
     if (!this._isRunning()) {
       return;
     }
+
+    this.isCurrentlyRunning = false;
 
     window.clearTimeout(this.timeoutId);
     window.clearInterval(this.intervalId);
@@ -161,18 +142,14 @@ export class SvgClock {
 
   /**
    * Determine whether the clock is running.
-   *
-   * @returns
-   * @memberof SvgClock
    */
   @Method()
-  async isRunning() {
+  async isRunning(): Promise<boolean> {
     return this._isRunning();
   }
 
   async componentWillLoad() {
-    this.visibilityListener = this.visibilityChanged.bind(this);
-    document.addEventListener('visibilitychange', this.visibilityListener);
+    document.addEventListener('visibilitychange', this.visibilityChanged);
 
     this.timeChanged();
 
@@ -181,7 +158,7 @@ export class SvgClock {
     if (this.src) {
       loadingPromise = this.loadExternalSvg();
     } else {
-      this.loadSvg();
+      this.initSvg();
     }
 
     await loadingPromise;
@@ -208,12 +185,12 @@ export class SvgClock {
 
   componentDidUnload() {
     this.stop();
-    document.removeEventListener('visibilitychange', this.visibilityListener);
-    this.io.disconnect();
+    document.removeEventListener('visibilitychange', this.visibilityChanged);
+    this.io && this.io.disconnect();
   }
 
   async init() {
-    this.loadSvg();
+    this.initSvg();
 
     if (this.autoplay) {
       this.start();
@@ -223,11 +200,24 @@ export class SvgClock {
     }
   }
 
+  /**
+   * Start an interval at the start of the next second or minute depending on `interval`.
+   */
+  startInterval() {
+    const timeout = getMillisecondsToNextSecond(this.interval >= 60000);
+
+    this.timeoutId = window.setTimeout(() => {
+      this.tick();
+
+      this.intervalId = window.setInterval(() => this.tick(), this.interval);
+    }, timeout);
+  }
+
   async loadExternalSvg() {
     this.svg = await (await fetch(this.src)).text();
   }
 
-  loadSvg() {
+  initSvg() {
     let elHours: SVGElement = this.el.querySelector('svg #hours-24');
 
     this.hours24 = !!elHours;
@@ -250,10 +240,10 @@ export class SvgClock {
   }
 
   _isRunning() {
-    return !!this.intervalId;
+    return this.isCurrentlyRunning;
   }
 
-  visibilityChanged() {
+  visibilityChanged = () => {
     if (document.hidden && !this._isRunning()) {
       // not running => do nothing
       return;
@@ -279,12 +269,8 @@ export class SvgClock {
       this.currentDate = new Date();
     }
 
-    let hoursPrecision = true;
+    let hoursPrecision = !this.disablePrecision;
     let minutesPrecision = false;
-
-    if (this.disablePrecision) {
-      hoursPrecision = false;
-    }
 
     if (this.supportsCSSTransformsOnSVG) {
       this.elHands.hours.style.transform = `rotateZ(${getHoursAngle(this.currentDate, hoursPrecision, this.hours24)}deg)`;
