@@ -1,4 +1,4 @@
-export function getHoursAngle(date: Date, highPrecision: boolean = true, hours24Mode: boolean = false) {
+export function getHoursAngle(date: Date, highPrecision: boolean = true, hours24Mode: boolean = false): number {
   let angle = 30 * (hours24Mode ? date.getHours() : (date.getHours() % 12));
 
   if (highPrecision) {
@@ -12,7 +12,7 @@ export function getHoursAngle(date: Date, highPrecision: boolean = true, hours24
   return angle;
 }
 
-export function getMinutesAngle(date: Date, highPrecision: boolean = false) {
+export function getMinutesAngle(date: Date, highPrecision: boolean = false): number {
   let angle = date.getMinutes() * 6;
 
   if (highPrecision) {
@@ -22,7 +22,7 @@ export function getMinutesAngle(date: Date, highPrecision: boolean = false) {
   return angle;
 }
 
-export function getSecondsAngle(date: Date, highPrecision: boolean = true) {
+export function getSecondsAngle(date: Date, highPrecision: boolean = true): number {
   let angle = date.getSeconds() * 6;
 
   if (highPrecision) {

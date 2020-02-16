@@ -2,7 +2,7 @@ import { h, Component, Element, Method, Prop, State, Watch } from '@stencil/core
 import { getHoursAngle, getMinutesAngle, getSecondsAngle } from '../../utils/calculateAngle';
 import { supportsCSSTransformsOnSVG } from '../../utils/supportsCSSTransformsOnSVG';
 import { getMillisecondsToNextSecond } from '../../utils/getMillisecondsToNextSecond';
-import { parseTimeString } from '../../utils/parseTimeString';
+import { timeStringToDate } from '../../utils/timeStringToDate';
 
 @Component({
   tag: 'svg-clock',
@@ -11,7 +11,7 @@ import { parseTimeString } from '../../utils/parseTimeString';
 export class SvgClock {
 
   /**
-   * The timeout used to start the interval at the correct moment.
+   * The timeout used to start the interval at the start of the next second or minute.
    */
   timeoutId: number;
 
@@ -19,7 +19,12 @@ export class SvgClock {
    * The interval responsible for the "ticking" of the clock.
    */
   intervalId: number;
+
+  /**
+   * Interaction observer to detect if the clock is visible.
+   */
   io: IntersectionObserver;
+
   supportsCSSTransformsOnSVG: boolean = supportsCSSTransformsOnSVG();
 
   elHands: { [key: string]: SVGElement };
@@ -61,7 +66,7 @@ export class SvgClock {
     }
 
     if (typeof this.time === 'string') {
-      this.currentDate = parseTimeString(this.time);
+      this.currentDate = timeStringToDate(this.time);
     }
 
     this.tick();
@@ -107,6 +112,9 @@ export class SvgClock {
    */
   @State() svg: string;
 
+  /**
+   * Whether the clock is currently not stopped.
+   */
   @State() isCurrentlyRunning: boolean = false;
 
   /**
@@ -114,7 +122,7 @@ export class SvgClock {
    */
   @Method()
   async start() {
-    if (this._isRunning() || this.paused || !!this.time) {
+    if (this.isCurrentlyRunning || this.paused || !!this.time) {
       return;
     }
 
@@ -128,16 +136,16 @@ export class SvgClock {
    */
   @Method()
   async stop() {
-    if (!this._isRunning()) {
+    if (!this.isCurrentlyRunning) {
       return;
     }
-
-    this.isCurrentlyRunning = false;
 
     window.clearTimeout(this.timeoutId);
     window.clearInterval(this.intervalId);
     this.timeoutId = null;
     this.intervalId = null;
+
+    this.isCurrentlyRunning = false;
   }
 
   /**
@@ -145,7 +153,7 @@ export class SvgClock {
    */
   @Method()
   async isRunning(): Promise<boolean> {
-    return this._isRunning();
+    return this.isCurrentlyRunning;
   }
 
   async componentWillLoad() {
@@ -239,12 +247,8 @@ export class SvgClock {
     };
   }
 
-  _isRunning() {
-    return this.isCurrentlyRunning;
-  }
-
   visibilityChanged = () => {
-    if (document.hidden && !this._isRunning()) {
+    if (document.hidden && !this.isCurrentlyRunning) {
       // not running => do nothing
       return;
     }
