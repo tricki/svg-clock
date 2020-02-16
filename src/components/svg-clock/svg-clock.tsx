@@ -270,7 +270,7 @@ export class SvgClock {
     }
 
     let hoursPrecision = !this.disablePrecision;
-    let minutesPrecision = false;
+    let minutesPrecision = !this.disablePrecision;
 
     if (this.supportsCSSTransformsOnSVG) {
       this.elHands.hours.style.transform = `rotateZ(${getHoursAngle(this.currentDate, hoursPrecision, this.hours24)}deg)`;
