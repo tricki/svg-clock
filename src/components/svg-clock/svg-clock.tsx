@@ -58,13 +58,13 @@ export class SvgClock {
 
     if (this.time instanceof Date) {
       this.currentDate = this.time;
-      return;
     }
 
     if (typeof this.time === 'string') {
       this.currentDate = parseTimeString(this.time);
-      this.tick();
     }
+
+    this.tick();
   }
 
   /**
