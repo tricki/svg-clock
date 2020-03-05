@@ -25,14 +25,25 @@ export class SvgClock {
    */
   io: IntersectionObserver;
 
+  /**
+   * Check whether the current browser supports CSS transforms on SVG elements.
+   *
+   * @see https://caniuse.com/#feat=transforms2d
+   */
   supportsCSSTransformsOnSVG: boolean = supportsCSSTransformsOnSVG();
 
+  /**
+   * Map of the clock hand elements.
+   */
   elHands: { [key: string]: SVGElement };
 
+  /**
+   * The host element.
+   */
   @Element() el: HTMLSvgClockElement;
 
   /**
-   * Define a URL to load the SVG from. Combining this with inline SVG will result in untested behavior.
+   * The URL to load the SVG from.
    */
   @Prop() src: string;
 
@@ -83,12 +94,12 @@ export class SvgClock {
   @State() currentDate: Date;
 
   /**
-   * Whether the hour hand should rotate once in 24 hours instead of 12.
+   * Whether the hour hand should rotate once in 24 hours instead of every 12 hours.
    */
   @State() hours24: boolean = false;
 
   /**
-   * Whether the clock is paused, for example because the clock is not visible.
+   * Whether the clock is paused, for example because it is not visible.
    */
   @State() paused: boolean = false;
 
@@ -113,7 +124,7 @@ export class SvgClock {
   @State() svg: string;
 
   /**
-   * Whether the clock is currently not stopped.
+   * Whether the clock is currently running.
    */
   @State() isCurrentlyRunning: boolean = false;
 

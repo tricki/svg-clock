@@ -27,7 +27,7 @@ export namespace Components {
     */
     'isRunning': () => Promise<boolean>;
     /**
-    * Define a URL to load the SVG from. Combining this with inline SVG will result in untested behavior.
+    * The URL to load the SVG from.
     */
     'src': string;
     /**
@@ -73,7 +73,7 @@ declare namespace LocalJSX {
     */
     'interval'?: number;
     /**
-    * Define a URL to load the SVG from. Combining this with inline SVG will result in untested behavior.
+    * The URL to load the SVG from.
     */
     'src'?: string;
     /**
