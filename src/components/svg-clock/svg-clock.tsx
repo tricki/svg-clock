@@ -88,6 +88,11 @@ export class SvgClock {
    */
   @Prop() disablePrecision: boolean = false;
 
+  @Watch('disablePrecision')
+  disablePrecisionChanged() {
+    this.tick();
+  }
+
   /**
    * The time that the clock is currently set to.
    */
