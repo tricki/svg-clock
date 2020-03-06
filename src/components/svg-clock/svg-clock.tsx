@@ -99,16 +99,21 @@ export class SvgClock {
   @State() hours24: boolean = false;
 
   /**
+   * Whether the clock
+   */
+  @State() stopped: boolean = true;
+
+  /**
    * Whether the clock is paused, for example because it is not visible.
    */
   @State() paused: boolean = false;
 
   @Watch('paused')
   pausedChanged() {
-    if (!this.paused) {
+    if (!this.paused && !this.stopped) {
       this.start();
     } else {
-      this.stop();
+      this.pause();
     }
   }
 
@@ -133,13 +138,17 @@ export class SvgClock {
    */
   @Method()
   async start() {
-    if (this.isCurrentlyRunning || this.paused || !!this.time) {
+    if (this.isCurrentlyRunning || !!this.time) {
       return;
     }
 
-    this.isCurrentlyRunning = true;
-    this.tick();
-    this.startInterval();
+    this.stopped = false;
+
+    if (!this.paused) {
+      this.isCurrentlyRunning = true;
+      this.tick();
+      this.startInterval();
+    }
   }
 
   /**
@@ -147,16 +156,9 @@ export class SvgClock {
    */
   @Method()
   async stop() {
-    if (!this.isCurrentlyRunning) {
-      return;
-    }
+    this.pause();
 
-    window.clearTimeout(this.timeoutId);
-    window.clearInterval(this.intervalId);
-    this.timeoutId = null;
-    this.intervalId = null;
-
-    this.isCurrentlyRunning = false;
+    this.stopped = true;
   }
 
   /**
@@ -256,6 +258,19 @@ export class SvgClock {
       minutes: this.elHands.minutes.getAttribute('data-transform-origin'),
       seconds: this.elHands.seconds && this.elHands.seconds.getAttribute('data-transform-origin'),
     };
+  }
+
+  pause() {
+    if (!this.isCurrentlyRunning) {
+      return;
+    }
+
+    window.clearTimeout(this.timeoutId);
+    window.clearInterval(this.intervalId);
+    this.timeoutId = null;
+    this.intervalId = null;
+
+    this.isCurrentlyRunning = false;
   }
 
   visibilityChanged = () => {
