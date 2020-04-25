@@ -1,5 +1,5 @@
-import { isIE } from "./isIE";
-import { getEdgeVersion } from "./getEdgeVersion";
+import { isIE } from './isIE';
+import { getEdgeVersion } from './getEdgeVersion';
 
 /**
  * Check for browser support of CSS transforms on SVG elements.

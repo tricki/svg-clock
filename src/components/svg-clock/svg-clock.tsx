@@ -1,7 +1,9 @@
-import { h, Component, Element, Method, Prop, State, Watch } from '@stencil/core';
+import { Component, Element, h, Method, Prop, State, Watch } from '@stencil/core';
+
 import { getHoursAngle, getMinutesAngle, getSecondsAngle } from '../../utils/calculateAngle';
-import { supportsCSSTransformsOnSVG } from '../../utils/supportsCSSTransformsOnSVG';
+import { getMillisecondsToNextMinute } from '../../utils/getMillisecondsToNextMinute';
 import { getMillisecondsToNextSecond } from '../../utils/getMillisecondsToNextSecond';
+import { supportsCSSTransformsOnSVG } from '../../utils/supportsCSSTransformsOnSVG';
 import { timeStringToDate } from '../../utils/timeStringToDate';
 
 @Component({
@@ -99,23 +101,24 @@ export class SvgClock {
   @State() currentDate: Date;
 
   /**
-   * Whether the hour hand should rotate once in 24 hours instead of every 12 hours.
+   * Whether the hour hand should rotate once in 24 hours instead of 12 hours.
+   * Value is set depending on existence of `#hours-24` element in SVG.
    */
   @State() hours24: boolean = false;
 
   /**
-   * Whether the clock
+   * Whether the clock is currently stopped.
    */
   @State() stopped: boolean = true;
 
   /**
-   * Whether the clock is paused, for example because it is not visible.
+   * Whether the clock is hidden and should therefore not be animating.
    */
-  @State() paused: boolean = false;
+  @State() isHidden: boolean = false;
 
-  @Watch('paused')
-  pausedChanged() {
-    if (!this.paused && !this.stopped) {
+  @Watch('isHidden')
+  isHiddenChanged() {
+    if (!this.isHidden && !this.stopped) {
       this.start();
     } else {
       this.pause();
@@ -149,7 +152,7 @@ export class SvgClock {
 
     this.stopped = false;
 
-    if (!this.paused) {
+    if (!this.isHidden) {
       this.isCurrentlyRunning = true;
       this.tick();
       this.startInterval();
@@ -179,18 +182,10 @@ export class SvgClock {
 
     this.timeChanged();
 
-    let loadingPromise = Promise.resolve();
-
     if (this.src) {
-      loadingPromise = this.loadExternalSvg();
+      // wait until external SVG has loaded
+      await this.loadExternalSvg();
     } else {
-      this.initSvg();
-    }
-
-    await loadingPromise;
-
-    if (!this.src) {
-      // only initialize if no external SVG has to be loaded first
       this.init();
     }
   }
@@ -230,7 +225,7 @@ export class SvgClock {
    * Start an interval at the start of the next second or minute depending on `interval`.
    */
   startInterval() {
-    const timeout = getMillisecondsToNextSecond(this.interval >= 60000);
+    const timeout = this.interval >= 60000 ? getMillisecondsToNextMinute() : getMillisecondsToNextSecond();
 
     this.timeoutId = window.setTimeout(() => {
       this.tick();
@@ -260,7 +255,7 @@ export class SvgClock {
 
     this.svgRotationOrigins = {
       hours: this.elHands.hours.getAttribute('data-transform-origin'),
-      minutes: this.elHands.minutes.getAttribute('data-transform-origin'),
+      minutes: this.elHands.minutes && this.elHands.minutes.getAttribute('data-transform-origin'),
       seconds: this.elHands.seconds && this.elHands.seconds.getAttribute('data-transform-origin'),
     };
   }
@@ -284,7 +279,7 @@ export class SvgClock {
       return;
     }
 
-    this.paused = document.hidden;
+    this.isHidden = document.hidden;
   }
 
   intersectionChanged(entries?: IntersectionObserverEntry[]) {
@@ -292,7 +287,7 @@ export class SvgClock {
       return;
     }
 
-    this.paused = entries[0].intersectionRatio === 0;
+    this.isHidden = entries[0].intersectionRatio === 0;
   }
 
   tick() {
@@ -310,17 +305,11 @@ export class SvgClock {
     if (this.supportsCSSTransformsOnSVG) {
       this.elHands.hours.style.transform = `rotateZ(${getHoursAngle(this.currentDate, hoursPrecision, this.hours24)}deg)`;
       this.elHands.minutes.style.transform = `rotateZ(${getMinutesAngle(this.currentDate, minutesPrecision)}deg)`;
-
-      if (this.elHands.seconds) {
-        this.elHands.seconds.style.transform = `rotateZ(${getSecondsAngle(this.currentDate, this.interval < 1000)}deg)`;
-      }
+      this.elHands.seconds && (this.elHands.seconds.style.transform = `rotateZ(${getSecondsAngle(this.currentDate, this.interval < 1000)}deg)`);
     } else {
       this.elHands.hours.setAttribute('transform', `rotate(${getHoursAngle(this.currentDate, hoursPrecision, this.hours24)} ${this.svgRotationOrigins.hours})`);
       this.elHands.minutes.setAttribute('transform', `rotate(${getMinutesAngle(this.currentDate, minutesPrecision)} ${this.svgRotationOrigins.minutes})`);
-
-      if (this.elHands.seconds) {
-        this.elHands.seconds.setAttribute('transform', `rotate(${getSecondsAngle(this.currentDate, this.interval < 1000)} ${this.svgRotationOrigins.seconds})`);
-      }
+      this.elHands.seconds && this.elHands.seconds.setAttribute('transform', `rotate(${getSecondsAngle(this.currentDate, this.interval < 1000)} ${this.svgRotationOrigins.seconds})`);
     }
   }
 

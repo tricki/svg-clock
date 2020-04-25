@@ -1,4 +1,4 @@
-import { timeStringToDate } from "./timeStringToDate";
+import { timeStringToDate } from './timeStringToDate';
 
 describe('timeStringToDate', () => {
   it('returns the correct time', () => {

@@ -1,4 +1,4 @@
-import { getHoursAngle, getMinutesAngle, getSecondsAngle } from "./calculateAngle";
+import { getHoursAngle, getMinutesAngle, getSecondsAngle } from './calculateAngle';
 
 describe('calculateAngle', () => {
   const date1 = new Date(1, 1, 2000, 15, 15, 15, 250);
