@@ -15,7 +15,8 @@
       flex-wrap: wrap;
       align-items: center;
       justify-content: center;
-      height: 100vh;
+      min-height: 100vh;
+      margin: 0;
 
       font-family: sans-serif;
     }
@@ -23,11 +24,27 @@
     svg-clock {
       width: 300px;
       height: 300px;
+
+      position: relative;
+    }
+
+    svg-clock::before {
+      content: "";
+      display: block;
+      background: radial-gradient(black, transparent 75%);
+      position: absolute;
+      top: 105%;
+      height: 1em;
+      left: 10%;
+      right: 10%;
+      border-radius: 50%;
+      opacity: 0.3;
+      z-index: -1;
     }
 
     figcaption {
       text-align: center;
-      margin-top: .5em;
+      margin-top: 2.5em;
     }
 
   </style>
@@ -50,6 +67,10 @@
   <figure>
     <svg-clock autoplay src="clocks/simple-black-2.svg"></svg-clock>
     <figcaption>Simple black clock 2 (Current time)</figcaption>
+  </figure>
+  <figure>
+    <svg-clock autoplay disable-precision interval="60000" src="clocks/turning-numbers.svg"></svg-clock>
+    <figcaption>24-hour clock (Current time)</figcaption>
   </figure>
 </body>
 
