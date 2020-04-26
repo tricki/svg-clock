@@ -197,9 +197,7 @@ export class SvgClock {
     }
 
     if ('IntersectionObserver' in window) {
-      this.io = new IntersectionObserver(this.intersectionChanged.bind(this), {
-        threshold: [0, 1]
-      });
+      this.io = new IntersectionObserver(this.intersectionChanged.bind(this));
       this.io.observe(this.el);
     }
   }
@@ -287,7 +285,7 @@ export class SvgClock {
       return;
     }
 
-    this.isHidden = entries[0].intersectionRatio === 0;
+    this.isHidden = !entries[0].isIntersecting;
   }
 
   tick() {
