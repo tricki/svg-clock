@@ -1,7 +1,15 @@
 {
   "name": "svg-clock",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "SVG Clock Web Component",
+  "author": {
+    "name": "Thomas Rickenbach",
+    "email": "thomas@qomapp.dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tricki/svg-clock.git"
+  },
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "es2015": "dist/esm/index.mjs",
