@@ -182,6 +182,12 @@ export class SvgClock {
 
     this.timeChanged();
 
+    this.faceChanged();
+
+    if (this.autoplay) {
+      this.stopped = false;
+    }
+
     if (this.src) {
       // wait until external SVG has loaded
       await this.loadExternalSvg();
@@ -211,7 +217,7 @@ export class SvgClock {
   async init() {
     this.initSvg();
 
-    if (this.autoplay) {
+    if (!this.stopped) {
       this.start();
     } else {
       // prepare the date value for the renderer
