@@ -1,4 +1,4 @@
-import { Component, Element, h, Method, Prop, State, Watch } from '@stencil/core';
+import { Component, Element, h, Method, Prop, State, Watch, ComponentInterface } from '@stencil/core';
 
 import { getHoursAngle, getMinutesAngle, getSecondsAngle } from '../../utils/calculateAngle';
 import { getMillisecondsToNextMinute } from '../../utils/getMillisecondsToNextMinute';
@@ -10,7 +10,7 @@ import { timeStringToDate } from '../../utils/timeStringToDate';
   tag: 'svg-clock',
   styleUrl: 'svg-clock.css'
 })
-export class SvgClock {
+export class SvgClock implements ComponentInterface {
 
   /**
    * The timeout used to start the interval at the start of the next second or minute.
@@ -182,8 +182,6 @@ export class SvgClock {
 
     this.timeChanged();
 
-    this.faceChanged();
-
     if (this.autoplay) {
       this.stopped = false;
     }
@@ -201,6 +199,10 @@ export class SvgClock {
       // initialize after external SVG was rendered
       this.init();
     }
+  }
+
+  connectedCallback() {
+    this.start();
 
     if ('IntersectionObserver' in window) {
       this.io = new IntersectionObserver(this.intersectionChanged.bind(this));
@@ -208,7 +210,7 @@ export class SvgClock {
     }
   }
 
-  componentDidUnload() {
+  disconnectedCallback() {
     this.stop();
     document.removeEventListener('visibilitychange', this.visibilityChanged);
     this.io && this.io.disconnect();
